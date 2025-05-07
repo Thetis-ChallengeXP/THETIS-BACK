@@ -82,7 +82,7 @@ erDiagram
     }
 ```
 
-Subir MySQL
+Subir MySQL:
 
 - https://hub.docker.com/_/mysql
 
@@ -97,3 +97,16 @@ docker run -d \
   -p 3306:3306 \
   mysql:8
 ```
+
+Subir MySQL fixo:
+```sh
+docker run -d \
+  --name mysql \
+  -v mysql_data:/var/lib/mysql \
+  -e MYSQL_ROOT_PASSWORD=root_pwd \
+  -e MYSQL_USER=new_user \
+  -e MYSQL_PASSWORD=my_pwd \
+  -e MYSQL_DATABASE=thetis \
+  -p 3306:3306 \
+  mysql:8
+  ```
