@@ -110,3 +110,8 @@ docker run -d \
   -p 3306:3306 \
   mysql:8
   ```
+
+  | Ambiente | Comando                                           |
+| -------- | ------------------------------------------------- |
+| **DEV**  | `SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run`  |
+| **PROD** | `SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run` |

@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -25,12 +26,13 @@ public class ThetisApplication {
         SpringApplication.run(ThetisApplication.class, args);
     }
 
+    /* ---------- Beans compartilhados (todos os perfis) ---------- */
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /** JavaMailSender “fake”: apenas imprime no console */
     @Bean
     JavaMailSender javaMailSender() {
         return new JavaMailSenderImpl() {
@@ -48,16 +50,30 @@ public class ThetisApplication {
         };
     }
 
-    private static final Scanner SC = new Scanner(System.in);   // um único Scanner para todo o app
-
+    /* ---------- Runner DEV ---------- */
     @Bean
-    CommandLineRunner interactive(UserService svc, EmailService mail) {
+    @Profile("dev")
+    CommandLineRunner devRunner(UserService svc) {
         return args -> {
+            System.out.println(">>> Rodando em perfil DEV — criando usuário fake…");
+            var u = svc.create(new CreateUserRequest(
+                    "devuser", "dev@mail.com", "(11)90000-0000", "12345678909", "123456"));
+            System.out.println("Usuário DEV criado: " + u);
+            System.out.println("Encerrando aplicação DEV.");
+        };
+    }
+
+    /* ---------- Runner PROD (CLI interativo) ---------- */
+    @Bean
+    @Profile("prod")
+    CommandLineRunner prodRunner(UserService svc, EmailService mail) {
+        return args -> {
+            final Scanner SC = new Scanner(System.in);
             System.out.println("=== Thetis CLI (perfil PROD) ===");
 
             while (true) {
                 System.out.print("""
-                                 
+                                    
                         Escolha:
                         [1] Cadastrar
                         [2] Login
@@ -80,7 +96,6 @@ public class ThetisApplication {
                             var resp = svc.create(new CreateUserRequest(user, email, phone, cpf, pwd));
                             System.out.println("✅  Criado: " + resp);
                         }
-
                         case "2" -> {
                             System.out.print("User/E-mail: "); String id = SC.nextLine();
                             System.out.print("Senha      : "); String pwd = SC.nextLine();
@@ -88,13 +103,11 @@ public class ThetisApplication {
                             var resp = svc.login(new LoginRequest(id, pwd));
                             System.out.println("✅  Login OK: " + resp);
                         }
-
                         case "3" -> {
                             System.out.print("E-mail: "); String email = SC.nextLine();
                             svc.requestPasswordReset(new PasswordResetRequest(email));
                             System.out.println("✅  Token enviado (veja console).");
                         }
-
                         case "4" -> {
                             System.out.print("Token      : "); UUID token = UUID.fromString(SC.nextLine());
                             System.out.print("Nova senha : "); String pwd = SC.nextLine();
@@ -102,9 +115,7 @@ public class ThetisApplication {
                             svc.confirmPasswordReset(new PasswordResetConfirm(token, pwd));
                             System.out.println("✅  Senha alterada.");
                         }
-
                         case "0" -> System.exit(0);
-
                         default -> System.out.println("Opção inválida.");
                     }
                 } catch (Exception e) {
