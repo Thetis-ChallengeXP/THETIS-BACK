@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -25,6 +26,11 @@ public class User {
     private String email;
     private String passwordHash;
     private String phone;
+
+    @CPF(message = "CPF inválido")
+    @Column(length = 11, unique = true, nullable = false)
+    private String cpf;
+
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 
