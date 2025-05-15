@@ -30,12 +30,9 @@ public class ThetisApplication {
         SpringApplication.run(ThetisApplication.class, args);
     }
 
-    /* ----------------- Beans comuns ----------------- */
-
     @Bean
     PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
-    /* ----------------- Mail FAKE (DEV) --------------- */
     @Bean
     @Profile("dev")
     JavaMailSender javaMailSenderFake() {
@@ -51,7 +48,6 @@ public class ThetisApplication {
         };
     }
 
-    /* ----------------- Runner DEV ------------------- */
     @Bean
     @Profile("dev")
     CommandLineRunner devRunner(UserService svc) {
@@ -62,7 +58,6 @@ public class ThetisApplication {
         };
     }
 
-    /* ----------------- Runner PROD (CLI) ------------- */
     @Bean
     @Profile("prod")
     CommandLineRunner prodRunner(UserService svc, EmailService mail) {
