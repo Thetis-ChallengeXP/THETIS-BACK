@@ -1,4 +1,3 @@
-// EmailService.java – envio simples (console)
 package br.com.fiap.thetis.service;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,7 @@ public class EmailService {
 
     public void send(String to, String subject, String body) {
         SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom("group.thetis.fiap@gmail.com");
         msg.setTo(to);
         msg.setSubject(subject);
         msg.setText(body);

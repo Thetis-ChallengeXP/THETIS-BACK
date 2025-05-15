@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 @Service
-@Profile("prod")     // só é registrado quando spring.profiles.active=prod
+@Profile("prod")
 @RequiredArgsConstructor
 public class UserServiceProd implements UserService {
 
@@ -24,7 +24,6 @@ public class UserServiceProd implements UserService {
     private final PasswordEncoder encoder;
     private final EmailService email;
 
-    /* ---------- Criação ---------- */
     @Override
     @Transactional
     public UserResponse create(CreateUserRequest req) {
@@ -42,7 +41,6 @@ public class UserServiceProd implements UserService {
         return map(u);
     }
 
-    /* ---------- Login ---------- */
     @Override
     public UserResponse login(LoginRequest req) {
         User u = buscarPorUsernameOuEmail(req.usernameOrEmail());
@@ -51,7 +49,6 @@ public class UserServiceProd implements UserService {
         return map(u);
     }
 
-    /* ---------- Reset – solicitar ---------- */
     @Override
     @Transactional
     public void requestPasswordReset(PasswordResetRequest req) {
@@ -66,10 +63,9 @@ public class UserServiceProd implements UserService {
 
         String link = "https://thetis.app/reset?token=" + token.getId();
         email.send(u.getEmail(), "Recuperação de senha",
-                   "Clique no link para redefinir sua senha: " + link);
+                   "Clique no link para redefinir sua senha:\n" + link);
     }
 
-    /* ---------- Reset – confirmar ---------- */
     @Override
     @Transactional
     public void confirmPasswordReset(PasswordResetConfirm req) {
@@ -83,7 +79,6 @@ public class UserServiceProd implements UserService {
         token.setUsed(true);
     }
 
-    /* ---------- Helpers ---------- */
     private void validarDuplicidade(CreateUserRequest req) {
         if (userRepo.findByEmail(req.email()).isPresent())
             throw new IllegalArgumentException("E-mail já cadastrado");

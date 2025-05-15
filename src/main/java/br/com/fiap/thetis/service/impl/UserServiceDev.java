@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@Profile("dev")      // só é registrado quando spring.profiles.active=dev
+@Profile("dev")
 public class UserServiceDev implements UserService {
 
     @Override
