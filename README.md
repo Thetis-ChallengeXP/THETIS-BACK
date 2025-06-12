@@ -188,7 +188,6 @@ docker run -d --name mysql   -v mysql_data:/var/lib/mysql   -e MYSQL_ROOT_PASSWO
 | `spring.datasource.url` | JDBC URL |
 | `spring.datasource.username` / `password` | Credenciais BD |
 | `GEMINI_API_KEY` | Chave da API Gemini |
-| `AZURE_AI_KEY` | Chave Azure Text Analytics |
 
 ---
 
