@@ -1,3 +1,6 @@
+
+![Vector 3](https://github.com/user-attachments/assets/fcb8c08c-ca99-4656-8e25-ad38944d9957)
+
 **Thetis** é uma solução **full-stack** para investidores que combina:
 
 - 📱 **App mobile React Native** para buscar ativos em tempo real  
@@ -18,13 +21,12 @@ O sistema interpreta grandes volumes de texto, gera **nota 0-100 + Positivo/Neut
 | **Spring Data JPA** 🗄️ | Persistência fluida |
 | **OpenAPI / Swagger** 📜 | Documentação viva |
 | **React Native** 📱 | App cross-platform |
-| **Azure AI – Text Analytics** ☁️ | NLP em escala |
 | **Gemini API** 🤖 | LLM para respostas |
 
 ---
 
 ## 🎨 Figma  
-[🔗 Link do Figma (placeholder)]()
+https://www.figma.com/design/oGfWj2j5WEkm9pEF7GFH7I/Challenge-2025?m=auto&t=yu36BRlnbZGYmqa0-6
 
 ---
 
@@ -53,7 +55,7 @@ thetis/
 1. 📝 **Usuário cria conta** → senha criptografada (`BCrypt`)  
 2. 🔑 **Login** → recebe painel da carteira  
 3. ➕ **Adiciona ativos** (`/api/wallet/add`)  
-4. 📰 **Envia notícia** (`/api/news`) → backend chama Azure AI/Gemini  
+4. 📰 **Envia notícia** (`/api/news`) → backend chama o Gemini  
 5. 📈 **Sentimento salvo** em `asset_sentiments`  
 6. 🚨 **Alertas** monitoram ativos da carteira  
 
@@ -126,6 +128,51 @@ erDiagram
         boolean is_active
         datetime triggered_at
     }
+```
+
+---
+
+## 🔁 Diagrama de Workflow (Fluxo de Uso)
+
+```mermaid
+flowchart TD
+    subgraph Frontend 📱
+        U(User) -->|Busca ativo / envia notícia| RN[React Native App]
+    end
+
+    subgraph Backend ☕
+        RN -- JSON REST --> API[Spring Boot API\n(/api/*)]
+        API -->|Verifica credenciais| SEC[Spring Security]
+        API -->|Persiste/consulta| DB[(Oracle / MySQL)]
+        API -->|Chama serviços| SRV[Serviços de Domínio]
+        SRV --> WAL[WalletService]
+        SRV --> NEWS[AssetNewsService]
+        SRV --> SENT[SentimentAnalysisService]
+    end
+
+    subgraph IA ☁️
+        GEM[Gemini API]
+    end
+
+    NEWS -- "Resumo da notícia" --> SENT
+    SENT -- "Prompt\ntexto" --> GEM
+    SENT -- "Score 0-100\nSentimento" --> DB
+
+    DB --> ALERTS[AlertScheduler (Quartz/Spring)]
+    ALERTS -- "Regra atingida" --> API
+    API --> RN
+
+    style U fill:#E8F6FF,stroke:#007ACC
+    style RN fill:#E8F6FF,stroke:#007ACC
+    style API fill:#FFF5E5,stroke:#F59E0B
+    style DB fill:#FCE7F3,stroke:#C026D3
+    style AZ fill:#E0F2F1,stroke:#0D9488
+    style GEM fill:#E0F2F1,stroke:#0D9488
+    style SENT fill:#FEF9C3,stroke:#CA8A04
+    style NEWS fill:#FEF3C7,stroke:#D97706
+    style WAL fill:#F0F9FF,stroke:#0284C7
+    style ALERTS fill:#F5F5F5,stroke:#737373
+
 ```
 
 ---
