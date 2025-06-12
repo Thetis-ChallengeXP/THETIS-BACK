@@ -193,6 +193,8 @@ docker run -d --name mysql   -v mysql_data:/var/lib/mysql   -e MYSQL_ROOT_PASSWO
 
 ## 📜 Swagger – Exemplos
 
+http://localhost:8080/swagger-ui/index.html
+
 | Endpoint | Payload |
 |----------|---------|
 | **POST /api/users** | ```json
