@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users/reset/request").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users/reset/confirm").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chatbot/message").permitAll()
+                .requestMatchers("/api/wallet/**").permitAll() // Permissão para endpoints de carteira
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults());
