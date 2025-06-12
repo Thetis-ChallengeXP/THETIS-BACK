@@ -136,33 +136,33 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    %% ---------- NÓS ----------
+    %% --------- FRONTEND ----------
     subgraph Frontend
-        U[User] --> RN[React Native App]
+        U[User] --> RN[Mobile App]
     end
 
+    %% ---------- BACKEND ----------
     subgraph Backend
-        RN --> API[Spring Boot API (/api/*)]
-        API --> SEC[Spring Security]
+        RN --> API["Spring Boot API"]
+        API --> SEC[Security]
+        API --> DB[(Database)]
         API --> SRV[Domain Services]
+
         SRV --> WAL[WalletService]
-        SRV --> NEWS[AssetNewsService]
-        SRV --> SENT[SentimentAnalysisService]
-        API --> DB[(Oracle / MySQL)]
+        SRV --> NEWS[NewsService]
+        SRV --> SENT[SentimentService]
     end
 
-    subgraph AI_Providers
-        AZ[Azure AI Text Analytics]
-    end
+    %% ----------- IA --------------
+    AZ[Azure Text Analytics]
 
-    %% ---------- FLUXOS ----------
-    NEWS -- "Resumo da Notícia" --> SENT
-    SENT -- "Prompt / texto" --> GEM
-    SENT -- "Score 0-100 + Sentimento" --> DB
+    %% -------- INTEGRAÇÕES --------
+    NEWS -- "Resumo" --> AZ
+    SENT -- "Prompt" --> GEM
+    SENT -- "Score 0-100" --> DB
 
-    DB --> ALERTS[AlertScheduler]
-    ALERTS -- "Regra atingida" --> API
-    API --> RN
+    DB --> ALERTS[Alert Scheduler]
+    ALERTS --> RN
 ```
 
 ---
