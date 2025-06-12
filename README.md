@@ -1,19 +1,65 @@
-# Thetis 2025
+**Thetis** é uma solução **full-stack** para investidores que combina:
 
-O Thetis é um aplicativo mobile desenvolvido com React Native que permite ao usuário buscar por ativos financeiros como ações, criptomoedas e commodities, recebendo como retorno uma análise inteligente do sentimento de mercado em tempo real. Essa análise é baseada em notícias recentes,analisando e rodadno remotamente através do Azure AI (Text Analytics), com backend em Java (Spring Boot).O sistema interpreta grandes volumes de informação textual, extrai sentimentos predominantes sobre o ativo buscado, destaca palavras-chave e fornece um resumo explicativo - permitindo que investidores tomemdecisões embasadas e rápidas, diretamente do celular.
+- 📱 **App mobile React Native** para buscar ativos em tempo real  
+- ☁️ **Azure AI (Text Analytics)** + **Gemini** para analisar notícias  
+- 🖥️ **Backend Java 17 / Spring Boot 3** que gerencia usuários, carteiras e alertas  
+- 💾 **Oracle ou MySQL** para persistência
 
-## Principais Tecnologias
+O sistema interpreta grandes volumes de texto, gera **nota 0-100 + Positivo/Neutro/Negativo**, destaca palavras-chave e entrega um resumo — tudo direto no celular do investidor. 📊  
 
-- **Java 17**: Utilizar a versão LTS mais recente do Java para aproveitar as melhorias em desempenho e segurança, mantendo a compatibilidade com bibliotecas modernas.
-- **Spring Boot 3**: Usar o Spring Boot 3 para agilizar o desenvolvimento com autoconfiguração inteligente, permitindo criar aplicações robustas com menos esforço.
-- **Spring Data JPA**: Simplificar a camada de persistência de dados com o Spring Data JPA, proporcionando uma integração eficiente e fluida com bancos de dados relacionais.
-- **OpenAPI (Swagger)**: Documentar a API com OpenAPI (Swagger), garantindo clareza na comunicação entre desenvolvedores e facilidade na manutenção dos endpoints.
+---
 
-## [Link do Figma]()
+## 🛠️ Principais Tecnologias
 
-O Figma foi utilizado para a abstração do domínio desta API, sendo útil na análise e projeto da solução.
+| Stack | Descrição |
+|-------|-----------|
+| **Java 17** ⚙️ | LTS, performance & segurança |
+| **Spring Boot 3** 🌱 | Autoconfiguração ágil |
+| **Spring Data JPA** 🗄️ | Persistência fluida |
+| **OpenAPI / Swagger** 📜 | Documentação viva |
+| **React Native** 📱 | App cross-platform |
+| **Azure AI – Text Analytics** ☁️ | NLP em escala |
+| **Gemini API** 🤖 | LLM para respostas |
 
-## Diagrama de Classes
+---
+
+## 🎨 Figma  
+[🔗 Link do Figma (placeholder)]()
+
+---
+
+## 🏗️ Estrutura de Pastas (backend)
+
+```text
+thetis/
+ ├─ src/main/java/br/com/fiap/thetis/
+ │   ├─ config/          ← Configurações Spring
+ │   ├─ controller/      ← Camada REST
+ │   ├─ dto/             ← Data-Transfer Objects
+ │   │   └─ chatbot/
+ │   ├─ model/           ← Entidades JPA
+ │   ├─ repository/      ← Spring Data
+ │   ├─ service/         ← Regras de negócio
+ │   └─ ThetisApplication.java
+ ├─ src/test/            ← Testes
+ ├─ pom.xml
+ └─ README.md
+```
+
+---
+
+## 🔄 Fluxo Resumido
+
+1. 📝 **Usuário cria conta** → senha criptografada (`BCrypt`)  
+2. 🔑 **Login** → recebe painel da carteira  
+3. ➕ **Adiciona ativos** (`/api/wallet/add`)  
+4. 📰 **Envia notícia** (`/api/news`) → backend chama Azure AI/Gemini  
+5. 📈 **Sentimento salvo** em `asset_sentiments`  
+6. 🚨 **Alertas** monitoram ativos da carteira  
+
+---
+
+## 🗂️ Diagrama de Classes
 
 ```mermaid
 erDiagram
@@ -24,7 +70,7 @@ erDiagram
     assets ||--o{ asset_sentiments : has
     assets ||--o{ asset_news : has
     assets ||--o{ alerts : triggers
-    
+
     users {
         UUID id
         string username
@@ -79,38 +125,64 @@ erDiagram
         float threshold_percentage
         boolean is_active
         datetime triggered_at
-    }
+    }
 ```
 
-Subir MySQL:
+---
 
-- https://hub.docker.com/_/mysql
+## 🐳 Subindo MySQL com Docker
 
-```sh
-docker run -d \
-  --name mysql \
-  --rm \
-  -e MYSQL_ROOT_PASSWORD=root_pwd \
-  -e MYSQL_USER=new_user \
-  -e MYSQL_PASSWORD=my_pwd \
-  -e MYSQL_DATABASE=thetis \
-  -p 3306:3306 \
-  mysql:8
+**Volátil**  
+```bash
+docker run -d --name mysql --rm   -e MYSQL_ROOT_PASSWORD=root_pwd   -e MYSQL_USER=new_user   -e MYSQL_PASSWORD=my_pwd   -e MYSQL_DATABASE=thetis   -p 3306:3306 mysql:8
 ```
 
-Subir MySQL fixo:
-```sh
-docker run -d \
-  --name mysql \
-  -v mysql_data:/var/lib/mysql \
-  -e MYSQL_ROOT_PASSWORD=root_pwd \
-  -e MYSQL_USER=new_user \
-  -e MYSQL_PASSWORD=my_pwd \
-  -e MYSQL_DATABASE=thetis \
-  -p 3306:3306 \
-  mysql:8
-  ```
+**Persistente**  
+```bash
+docker run -d --name mysql   -v mysql_data:/var/lib/mysql   -e MYSQL_ROOT_PASSWORD=root_pwd   -e MYSQL_USER=new_user   -e MYSQL_PASSWORD=my_pwd   -e MYSQL_DATABASE=thetis   -p 3306:3306 mysql:8
+```
 
-| Comando               |
-| --------------------- |
-| `mvn spring-boot:run` |
+---
+
+## 🔑 Variáveis de Ambiente
+
+| Variável | Descrição |
+|----------|-----------|
+| `spring.datasource.url` | JDBC URL |
+| `spring.datasource.username` / `password` | Credenciais BD |
+| `GEMINI_API_KEY` | Chave da API Gemini |
+| `AZURE_AI_KEY` | Chave Azure Text Analytics |
+
+---
+
+## 📜 Swagger – Exemplos
+
+| Endpoint | Payload |
+|----------|---------|
+| **POST /api/users** | ```json
+{{"username":"joaosilva","email":"joao@email.com","phone":"11999999999","cpf":"12345678909","password":"senha123"}}``` |
+| **POST /api/users/login** | ```json
+{{"usernameOrEmail":"joaosilva","password":"senha123"}}``` |
+| **POST /api/wallet/add** | ```json
+{{"userId":"1111...","assetId":"aaaa..."}}``` |
+| **POST /api/news** | ```json
+{{"title":"Petrobras recorde","summary":"A produção...","url":"https://exemplo.com","assetId":"bbbb..."}}``` |
+
+---
+
+## 🧪 Testes
+
+```bash
+mvn test
+```
+
+---
+
+## ⚡ Scripts Rápidos
+
+| Comando | Descrição |
+|---------|-----------|
+| `./mvnw spring-boot:run` | 🚀 Sobe o backend |
+| `curl -X POST http://localhost:8080/api/chatbot/message -H "Content-Type: application/json" -d '{"message":"Tipos de renda fixa?"}'` | Teste rápido |
+
+---
