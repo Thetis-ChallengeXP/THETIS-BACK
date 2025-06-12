@@ -136,43 +136,33 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    subgraph Frontend 📱
-        U(User) -->|Busca ativo / envia notícia| RN[React Native App]
+    %% ---------- NÓS ----------
+    subgraph Frontend
+        U[User] --> RN[React Native App]
     end
 
-    subgraph Backend ☕
-        RN -- JSON REST --> API[Spring Boot API\n(/api/*)]
-        API -->|Verifica credenciais| SEC[Spring Security]
-        API -->|Persiste/consulta| DB[(Oracle / MySQL)]
-        API -->|Chama serviços| SRV[Serviços de Domínio]
+    subgraph Backend
+        RN --> API[Spring Boot API (/api/*)]
+        API --> SEC[Spring Security]
+        API --> SRV[Domain Services]
         SRV --> WAL[WalletService]
         SRV --> NEWS[AssetNewsService]
         SRV --> SENT[SentimentAnalysisService]
+        API --> DB[(Oracle / MySQL)]
     end
 
-    subgraph IA ☁️
-        GEM[Gemini API]
+    subgraph AI_Providers
+        AZ[Azure AI Text Analytics]
     end
 
-    NEWS -- "Resumo da notícia" --> SENT
-    SENT -- "Prompt\ntexto" --> GEM
-    SENT -- "Score 0-100\nSentimento" --> DB
+    %% ---------- FLUXOS ----------
+    NEWS -- "Resumo da Notícia" --> SENT
+    SENT -- "Prompt / texto" --> GEM
+    SENT -- "Score 0-100 + Sentimento" --> DB
 
-    DB --> ALERTS[AlertScheduler (Quartz/Spring)]
+    DB --> ALERTS[AlertScheduler]
     ALERTS -- "Regra atingida" --> API
     API --> RN
-
-    style U fill:#E8F6FF,stroke:#007ACC
-    style RN fill:#E8F6FF,stroke:#007ACC
-    style API fill:#FFF5E5,stroke:#F59E0B
-    style DB fill:#FCE7F3,stroke:#C026D3
-    style AZ fill:#E0F2F1,stroke:#0D9488
-    style GEM fill:#E0F2F1,stroke:#0D9488
-    style SENT fill:#FEF9C3,stroke:#CA8A04
-    style NEWS fill:#FEF3C7,stroke:#D97706
-    style WAL fill:#F0F9FF,stroke:#0284C7
-    style ALERTS fill:#F5F5F5,stroke:#737373
-
 ```
 
 ---
