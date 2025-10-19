@@ -1,214 +1,195 @@
+## Thetis
 
-![Vector 3](https://github.com/user-attachments/assets/fcb8c08c-ca99-4656-8e25-ad38944d9957)
+Plataforma em Spring Boot com:
+- Autenticação de usuário e recuperação de senha por e-mail
+- Chatbot integrado ao Gemini
+- Módulo financeiro de carteiras, posições e negociações com cálculo de P/L
 
-**Thetis** é uma solução **full-stack** para investidores que combina:
-
-- 📱 **App mobile React Native** para buscar ativos em tempo real  
-- ☁️ **Azure AI (Text Analytics)** + **Gemini** para analisar notícias  
-- 🖥️ **Backend Java 17 / Spring Boot 3** que gerencia usuários, carteiras e alertas  
-- 💾 **Oracle ou MySQL** para persistência
-
-O sistema interpreta grandes volumes de texto, gera **nota 0-100 + Positivo/Neutro/Negativo**, destaca palavras-chave e entrega um resumo — tudo direto no celular do investidor. 📊  
+Esta documentação foi revisada e unificada. Siga as instruções abaixo — destaque para a criação do arquivo .env com os dados do banco e da API do Gemini.
 
 ---
 
-## 🛠️ Principais Tecnologias
-
-| Stack | Descrição |
-|-------|-----------|
-| **Java 17** ⚙️ | LTS, performance & segurança |
-| **Spring Boot 3** 🌱 | Autoconfiguração ágil |
-| **Spring Data JPA** 🗄️ | Persistência fluida |
-| **OpenAPI / Swagger** 📜 | Documentação viva |
-| **React Native** 📱 | App cross-platform |
-| **Gemini API** 🤖 | LLM para respostas |
-
----
-
-## 🎨 Figma  
-https://www.figma.com/design/oGfWj2j5WEkm9pEF7GFH7I/Challenge-2025?m=auto&t=yu36BRlnbZGYmqa0-6
+## Sumário
+- Visão geral e stack
+- Estrutura do projeto
+- Pré-requisitos
+- Configuração do ambiente (.env)
+- Banco de dados
+- Como executar localmente
+- Documentação da API (endpoints)
+- Tratamento de erros (padrão de resposta)
+- Testes automatizados
+- Solução de problemas (FAQ)
 
 ---
 
-## 🏗️ Estrutura de Pastas (backend)
+## Visão geral e stack
+- Java 17
+- Spring Boot 3.4.x (Web, Validation, Security, Data JPA, Actuator, Mail)
+- MySQL (produção/dev) e H2 (testes)
+- Springdoc OpenAPI (Swagger UI)
+- Lombok
+- java-dotenv (carrega variáveis do arquivo .env)
 
-```text
-thetis/
- ├─ src/main/java/br/com/fiap/thetis/
- │   ├─ config/          ← Configurações Spring
- │   ├─ controller/      ← Camada REST
- │   ├─ dto/             ← Data-Transfer Objects
- │   │   └─ chatbot/
- │   ├─ model/           ← Entidades JPA
- │   ├─ repository/      ← Spring Data
- │   ├─ service/         ← Regras de negócio
- │   └─ ThetisApplication.java
- ├─ src/test/            ← Testes
- ├─ pom.xml
- └─ README.md
+---
+
+## Estrutura do projeto
+
+```
+THETIS-BACK/
+  ├─ src/
+  │  ├─ main/
+  │  │  ├─ java/br/com/fiap/thetis/
+  │  │  │  ├─ config/ (Security, CORS, RestTemplate, GlobalExceptionHandler)
+  │  │  │  ├─ controller/ (UserController, ChatBotController, WalletController)
+  │  │  │  ├─ dto/ (users, chatbot, wallet)
+  │  │  │  ├─ exception/ (BusinessException, NotFoundException, ErrorResponse)
+  │  │  │  ├─ model/ (User, PasswordResetToken, Asset, Wallet, Position, Trade, Alert)
+  │  │  │  ├─ repository/ (...Repository)
+  │  │  │  ├─ service/ (UserService, EmailService, ChatBotService, WalletService)
+  │  │  │  └─ service/market/ (QuoteProvider, HttpQuoteProvider)
+  │  │  └─ resources/
+  │  │     └─ application.properties
+  │  └─ test/
+  │     └─ java/br/com/fiap/thetis/ (...Tests)
+  ├─ pom.xml
+  └─ README.md
 ```
 
 ---
 
-## 🔄 Fluxo Resumido
-
-1. 📝 **Usuário cria conta** → senha criptografada (`BCrypt`)  
-2. 🔑 **Login** → recebe painel da carteira  
-3. ➕ **Adiciona ativos** (`/api/wallet/add`)  
-4. 📰 **Envia notícia** (`/api/news`) → backend chama o Gemini  
-5. 📈 **Sentimento salvo** em `asset_sentiments`  
-6. 🚨 **Alertas** monitoram ativos da carteira  
+## Pré-requisitos
+- JDK 17+
+- Maven 3.9+
+- MySQL 8+ em execução (ou ajuste a URL para seu ambiente)
 
 ---
 
-## 🗂️ Diagrama de Classes
+## Configuração do ambiente (.env) [ESSENCIAL]
 
-```mermaid
-erDiagram
-    users ||--o{ wallets : has
-    users ||--o{ alerts : creates
-    wallets ||--o{ wallet_assets : contains
-    assets ||--o{ wallet_assets : includes
-    assets ||--o{ asset_sentiments : has
-    assets ||--o{ asset_news : has
-    assets ||--o{ alerts : triggers
+Crie um arquivo `.env` na raiz do projeto. O projeto usa `java-dotenv` para carregar pares chave/valor e registrá-los como propriedades do sistema antes do Spring Boot subir.
 
-    users {
-        UUID id
-        string username
-        string email
-        string password_hash
-        string phone
-        datetime created_at
-        datetime modified_at
-    }
+Para funcionar em todos os cenários, recomendamos definir as propriedades com notação de pontos (para Spring) e, quando indicado, as variações em UPPER_CASE esperadas pelo `application.properties`:
 
-    wallets {
-        UUID id
-        UUID user_id
-    }
+```
+# Banco de Dados (Spring lerá diretamente estas chaves)
+spring.datasource.url=jdbc:mysql://localhost:3306/thetis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
 
-    assets {
-        UUID id
-        string symbol
-        string type
-        decimal current_price
-        datetime last_updated
-    }
+# E-mail (SMTP Gmail) — referenciado em application.properties
+MAIL_USER=seu-email@gmail.com
+MAIL_PASS=sua-senha-de-aplicativo
 
-    wallet_assets {
-        UUID id
-        UUID wallet_id
-        UUID asset_id
-    }
+# Gemini (obrigatório para o chatbot)
+GEMINI_API_KEY=coloque_sua_chave_aqui
 
-    asset_sentiments {
-        UUID id
-        UUID asset_id
-        string sentiment
-        float confidence_score
-        datetime analyzed_at
-    }
+# Provedor de cotações (opcional; fallback de preço será usado se indisponível)
+MARKET_QUOTES_URL=https://minha-api-de-cotacoes/price?symbol=
 
-    asset_news {
-        UUID id
-        UUID asset_id
-        string title
-        string summary
-        string url
-        date published_at
-    }
+# (opcional) CORS do frontend
+# Ex.: http://localhost:8081 (ajuste se necessário)
+```
 
-    alerts {
-        UUID id
-        UUID user_id
-        UUID asset_id
-        string sentiment_type
-        float threshold_percentage
-        boolean is_active
-        datetime triggered_at
-    }
+Notas:
+- As chaves `spring.datasource.*` com ponto garantem leitura direta pelo Spring a partir de System properties.
+- Para Gmail, utilize 2FA e crie uma “Senha de app”.
+- `GEMINI_API_KEY` é necessário para o endpoint do chatbot.
+- `MARKET_QUOTES_URL` é opcional; se ausente/indisponível, o serviço usa um preço fictício apenas para desenvolvimento.
+
+Um arquivo de exemplo está disponível: `.env.example`.
+
+---
+
+## Banco de dados
+- O Hibernate usa `spring.jpa.hibernate.ddl-auto=update` para evoluir o schema automaticamente.
+- Crie o database antes de rodar a aplicação (ou ajuste a URL):
+
+```
+CREATE DATABASE thetis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ---
 
-## 🔁 Diagrama de Workflow (Fluxo de Uso)
+## Como executar localmente
 
-```mermaid
-flowchart TD
-    %% --------- FRONTEND ----------
-    subgraph Frontend
-        U[User] --> RN[Mobile App]
-    end
+1) Instale dependências e gere o pacote:
 
-    %% ---------- BACKEND ----------
-    subgraph Backend
-        RN --> API["Spring Boot API"]
-        API --> SEC[Security]
-        API --> DB[(Database)]
-        API --> SRV[Domain Services]
-
-        SRV --> WAL[WalletService]
-        SRV --> NEWS[NewsService]
-        SRV --> SENT[SentimentService]
-    end
-
-    %% ----------- IA --------------
-    AZ[Azure Text Analytics]
-
-    %% -------- INTEGRAÇÕES --------
-    NEWS -- "Resumo" --> AZ
-    SENT -- "Prompt" --> GEM
-    SENT -- "Score 0-100" --> DB
-
-    DB --> ALERTS[Alert Scheduler]
-    ALERTS --> RN
-```
-
----
-
-## 🐳 Subindo MySQL com Docker
-
-**Volátil**  
 ```bash
-docker run -d --name mysql --rm   -e MYSQL_ROOT_PASSWORD=root_pwd   -e MYSQL_USER=new_user   -e MYSQL_PASSWORD=my_pwd   -e MYSQL_DATABASE=thetis   -p 3306:3306 mysql:8
+mvn clean package
 ```
 
-**Persistente**  
+2) Suba a aplicação:
+
 ```bash
-docker run -d --name mysql   -v mysql_data:/var/lib/mysql   -e MYSQL_ROOT_PASSWORD=root_pwd   -e MYSQL_USER=new_user   -e MYSQL_PASSWORD=my_pwd   -e MYSQL_DATABASE=thetis   -p 3306:3306 mysql:8
+mvn spring-boot:run
 ```
 
----
-
-## 🔑 Variáveis de Ambiente
-
-| Variável | Descrição |
-|----------|-----------|
-| `spring.datasource.url` | JDBC URL |
-| `spring.datasource.username` / `password` | Credenciais BD |
-| `GEMINI_API_KEY` | Chave da API Gemini |
+Endpoints úteis:
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- Actuator (parcial): http://localhost:8080/actuator
 
 ---
 
-## 📜 Swagger – Exemplos
+## Documentação da API (endpoints)
 
-http://localhost:8080/swagger-ui/index.html
+### Usuários
+- POST `/api/users` — cadastro
+  - body: `{ "username": "...", "email": "...", "phone": "...", "cpf": "...", "password": "..." }`
+- POST `/api/users/login` — login por username OU e-mail
+  - body: `{ "usernameOrEmail": "...", "password": "..." }`
+- POST `/api/users/reset/request` — solicita reset de senha
+  - body: `{ "email": "..." }` (e-mail com link é enviado)
+- POST `/api/users/reset/confirm` — confirma reset
+  - body: `{ "token": "uuid", "newPassword": "..." }`
 
-| Endpoint | Payload |
-|----------|---------|
-| **POST /api/users** | ```json
-{{"username":"joaosilva","email":"joao@email.com","phone":"11999999999","cpf":"12345678909","password":"senha123"}}``` |
-| **POST /api/users/login** | ```json
-{{"usernameOrEmail":"joaosilva","password":"senha123"}}``` |
-| **POST /api/wallet/add** | ```json
-{{"userId":"1111...","assetId":"aaaa..."}}``` |
-| **POST /api/news** | ```json
-{{"title":"Petrobras recorde","summary":"A produção...","url":"https://exemplo.com","assetId":"bbbb..."}}``` |
+### Chatbot (Gemini)
+- POST `/api/chatbot/message`
+  - body: `{ "message": "pergunta do usuário" }`
+  - requer `GEMINI_API_KEY` válido no `.env`
+
+### Mercado Financeiro
+- POST `/api/wallet/{userId}` — cria carteira para o usuário
+  - body: `{ "name": "Minha carteira" }`
+- GET `/api/wallet/{walletId}` — consulta carteira (posições, valor de mercado, P/L)
+- POST `/api/wallet/trade` — executa trade (compra/venda)
+  - body: `{ "walletId": "uuid", "symbol": "AAPL", "side": "BUY|SELL", "quantity": 10, "price": 100.00 }`
+
+Observações:
+- As cotações são obtidas via `QuoteProvider`. Se o provedor externo falhar, um valor padrão é usado para desenvolvimento.
+- A segurança atual permite `/api/wallet/**` sem autenticação (pode ser endurecida conforme a necessidade).
 
 ---
 
-## 🧪 Testes
+## Tratamento de erros
+
+Respostas padronizadas via `GlobalExceptionHandler`:
+
+```
+{
+  "timestamp": "2025-10-19T21:00:00Z",
+  "status": 422,
+  "error": "Business Rule",
+  "message": "Quantidade para venda excede a posição",
+  "path": "/api/wallet/trade",
+  "fieldErrors": [
+    { "field": "quantity", "message": "must be greater than 0" }
+  ]
+}
+```
+
+Mapeamentos principais:
+- 400 — validações/argumentos inválidos
+- 404 — não encontrado (`NotFoundException`)
+- 422 — regras de negócio (`BusinessException`)
+- 500 — erro inesperado
+
+---
+
+## Testes automatizados
+
+- O perfil de testes usa H2 em memória (sem dependência de MySQL).
+- Para executar:
 
 ```bash
 mvn test
@@ -216,11 +197,22 @@ mvn test
 
 ---
 
-## ⚡ Scripts Rápidos
+## Solução de problemas (FAQ)
 
-| Comando | Descrição |
-|---------|-----------|
-| `./mvnw spring-boot:run` | 🚀 Sobe o backend |
-| `curl -X POST http://localhost:8080/api/chatbot/message -H "Content-Type: application/json" -d '{"message":"Tipos de renda fixa?"}'` | Teste rápido |
+1) Erro de conexão MySQL
+- Verifique se o MySQL está rodando e se `spring.datasource.*` no `.env` estão corretos.
+- Confirme firewall/porta e se o database `thetis` existe.
+
+2) E-mail não enviado (SMTP)
+- Use `MAIL_USER` e `MAIL_PASS` (senha de app do Gmail).
+- Logs úteis: `logging.level.org.springframework.mail=DEBUG` (já habilitado).
+
+3) Chatbot falha
+- Garanta que `GEMINI_API_KEY` está presente e válido no `.env`.
+- Verifique limites de uso e conectividade.
+
+4) Cotações sempre iguais
+- Configure `MARKET_QUOTES_URL` para um provedor real.
+- Em desenvolvimento, o serviço usa fallback de preço quando a API externa não responde.
 
 ---

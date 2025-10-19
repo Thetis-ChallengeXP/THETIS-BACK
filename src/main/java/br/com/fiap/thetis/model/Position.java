@@ -1,5 +1,6 @@
 package br.com.fiap.thetis.model;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -8,11 +9,11 @@ import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,11 +22,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "assets", indexes = {
-        @Index(name = "uk_asset_symbol", columnList = "symbol", unique = true)
-})
+@Table(name = "positions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Asset {
+public class Position {
 
     @Id
     @GeneratedValue
@@ -34,15 +33,17 @@ public class Asset {
     @Column(length = 36, updatable = false, nullable = false)
     private UUID id;
 
-    @Column(nullable = false, length = 20, unique = true)
-    private String symbol; // e.g., PETR4, AAPL
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id", nullable = false)
+    private Wallet wallet;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asset_id", nullable = false)
+    private Asset asset;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private AssetType type;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal quantity;
 
-    public enum AssetType { STOCK, ETF, FUND, BOND, CRYPTO }
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal avgPrice;
 }

@@ -5,9 +5,9 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import br.com.fiap.thetis.model.User;
+import br.com.fiap.thetis.model.Trade;
 import br.com.fiap.thetis.model.Wallet;
 
-public interface WalletRepository extends JpaRepository<Wallet, UUID> {
-    List<Wallet> findByUser(User user);
+public interface TradeRepository extends JpaRepository<Trade, UUID> {
+    List<Trade> findByWallet(Wallet wallet);
 }

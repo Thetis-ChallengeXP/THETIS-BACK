@@ -1,37 +1,43 @@
 package br.com.fiap.thetis.controller;
 
-import br.com.fiap.thetis.dto.AddAssetToWalletRequest;
-import br.com.fiap.thetis.model.Asset;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import br.com.fiap.thetis.dto.wallet.CreateWalletRequest;
+import br.com.fiap.thetis.dto.wallet.ExecuteTradeRequest;
+import br.com.fiap.thetis.dto.wallet.WalletResponse;
 import br.com.fiap.thetis.service.WalletService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/wallet")
 @RequiredArgsConstructor
 public class WalletController {
 
-    private final WalletService walletService;
+    private final WalletService service;
 
-    @PostMapping("/add")
-    public ResponseEntity<String> addAsset(@Valid @RequestBody AddAssetToWalletRequest request) {
-        walletService.addAssetToWallet(request);
-        return ResponseEntity.ok("Ativo adicionado com sucesso à carteira.");
+    @PostMapping("/{userId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public WalletResponse create(@PathVariable UUID userId, @Valid @RequestBody CreateWalletRequest req) {
+        return service.createWallet(userId, req);
     }
 
-    @DeleteMapping("/remove/{walletAssetId}")
-    public ResponseEntity<String> removeAsset(@PathVariable UUID walletAssetId) {
-        walletService.removeAssetFromWallet(walletAssetId);
-        return ResponseEntity.ok("Ativo removido com sucesso da carteira.");
+    @GetMapping("/{walletId}")
+    public WalletResponse get(@PathVariable UUID walletId) {
+        return service.getWallet(walletId);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Asset>> listUserAssets(@PathVariable UUID userId) {
-        return ResponseEntity.ok(walletService.getAssetsFromWallet(userId));
+    @PostMapping("/trade")
+    public WalletResponse trade(@Valid @RequestBody ExecuteTradeRequest req) {
+        return service.executeTrade(req);
     }
 }
